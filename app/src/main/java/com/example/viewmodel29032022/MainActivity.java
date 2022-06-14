@@ -1,10 +1,13 @@
 package com.example.viewmodel29032022;
 
 import android.Manifest;
+import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.SpannableString;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -14,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
     TextView tvLocation;
-
+    MyLocationListener myLocationListener;
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,12 +32,28 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.ACCESS_FINE_LOCATION, false);
                     Boolean coarseLocationGranted = result.getOrDefault(
                             Manifest.permission.ACCESS_COARSE_LOCATION, false);
-                    if (fineLocationGranted != null && fineLocationGranted) {
-                        Log.d("BBB", "Fine location accept");
-                    } else if (coarseLocationGranted != null && coarseLocationGranted) {
-                        Log.d("BBB", "Coarse location accept");
+                    if (fineLocationGranted != null && fineLocationGranted || coarseLocationGranted != null && coarseLocationGranted) {
+                        myLocationListener = new MyLocationListener(getApplicationContext());
+                        getLifecycle().addObserver(myLocationListener);
+                        myLocationListener.setLocationListener(new MyLocationListener.OnLocationListener() {
+                            @Override
+                            public void onStart() {
+                                Log.d("BBB","Start");
+                            }
+
+                            @Override
+                            public void onLocationChanges(Location location) {
+                                Log.d("BBB","Lat: " + location.getLatitude() + ", Lon: " + location.getLatitude());
+                                tvLocation.setText("Lat: " + location.getLatitude() + ", Lon: " + location.getLatitude());
+                            }
+
+                            @Override
+                            public void onStop() {
+                                Toast.makeText(MainActivity.this, "Stop", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     } else {
-                        // No location access granted.
+                        Toast.makeText(this, "Permission deny", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
